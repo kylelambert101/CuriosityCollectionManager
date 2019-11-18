@@ -36,6 +36,9 @@ for text in all_text:
     prev_chunk = current_chunk
 print('|')
 
+for e in sorted(all_entries):
+    print(e)
+
 # TODO Extract progress bar code to a different class
 # TODO Add a cool thing where it shows what is being processed at the bottom of the screen under the progress bar
 # TODO Implement a container of entries

@@ -1,7 +1,9 @@
 import re, json
 from pygbif import species
 from AttributeValueCount import AttributeValueCounter
+from functools import total_ordering
 
+@total_ordering
 class Entry:
     taxon_levels = [
         'Kingdom', 
@@ -36,8 +38,8 @@ class Entry:
                 value = re.sub(r'[^\w\s]','',value)
 
                 return Entry.fetch_taxonomy(target_level=level, value=value)
-        # If no match was ever found, then return None
-        return None
+        # If no match was ever found, then return taxonomy dict of Nones
+        return dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
 
     @staticmethod
     def parse_title(text):
@@ -73,6 +75,27 @@ class Entry:
     
     def __str__(self):
         return f'Text: {self.get_displayable_text()}\nTaxonomy: {json.dumps(self.taxonomy,indent=4)}'
+
+    def _is_valid_operand(self, other):
+        return (
+                hasattr(other, "taxonomy")
+                    and
+                hasattr(other, "text")
+                    and 
+                other.taxonomy.keys() == self.taxonomy.keys()
+                )
+
+    def __eq__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return self.text == other.text
+
+    def __lt__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        for level in Entry.taxon_levels:
+            if self.taxonomy[level] != other.taxonomy[level]:
+                return str(self.taxonomy[level]) < str(other.taxonomy[level])
 
 # TODO It would be an interesting test to fetch taxonomy for all matches 
 # instead of just the lowest level match, and then compare the resulting
