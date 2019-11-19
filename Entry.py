@@ -139,5 +139,3 @@ Use the keys in the taxo_dictionary to know what to pull out of pygbif
 Adding the dependency prevents you from having to duplicate the taxon hierarchy
 in this class. 
 '''
-
-# TODO Implement comparison functions using self.taxonomy
