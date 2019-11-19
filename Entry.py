@@ -50,6 +50,7 @@ class Entry:
 
     @staticmethod
     # TODO this should probably be moved out to a different class. 
+    # TODO Something is going wrong with some species (e.g. Apis Mellifera) - fix it. 
     def fetch_taxonomy(target_level, value):
         best_guesses = dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
 
