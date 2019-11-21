@@ -1,6 +1,5 @@
 import re, json
 from pygbif import species
-#from AttributeValueCount import AttributeValueCounter
 from functools import total_ordering
 from PyGBIFParser import PyGBIFParser
 
@@ -88,28 +87,3 @@ class Entry:
 # the calling program or container, you can get the unique matches 
 # (regex anchors) from the full collection of entries and just call the 
 # api on those. It would eliminate a few duplicate calls at least. 
-                                               
-
-# TODO Taxonomy class
-'''
-Taxonomy.SPECIES
-Taxonomy.GENUS
-and so on
-Taxonomy.Levels = List of all of those constants
-Maybe not. 
-
-Taxon class?
-Name = 'Kingdom'
-Aliases = {'Animalia': 'Animalia', 'Metazoa': 'Animalia',...}
-
-Entry would hold the list of taxonomic levelspreerty[' <-- Monty
-
-Okay, I've got it. 
-PyGBIFParser object
-p = PyGBIFParser(name, target_level, taxo_dictionary)
--> Populate/return taxo_dictionary with values from pygbif search using name
-and target level. name is already regex parsed out of the entry text. 
-Use the keys in the taxo_dictionary to know what to pull out of pygbif
-Adding the dependency prevents you from having to duplicate the taxon hierarchy
-in this class. 
-'''
