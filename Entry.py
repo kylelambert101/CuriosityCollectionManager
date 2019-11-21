@@ -1,7 +1,8 @@
 import re, json
 from pygbif import species
-from AttributeValueCount import AttributeValueCounter
+#from AttributeValueCount import AttributeValueCounter
 from functools import total_ordering
+from PyGBIFParser import PyGBIFParser
 
 @total_ordering
 class Entry:
@@ -27,19 +28,18 @@ class Entry:
 
     @staticmethod
     def parse_taxonomy(text):
+        best_guesses = dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
         # Try to find taxa in reverse hierarchical order
         for level in reversed(Entry.taxon_levels):
             pattern = f'{level[0]}: ?(.+)' # e.g. Family -> 'F: ?(.+)'
             match = re.search(pattern,text)
             if match is not None:
-                value = match.group(1).replace('#','')
+                value = match.group(1)
 
                 # Strip symbols from the match
                 value = re.sub(r'[^\w\s]','',value)
-
-                return Entry.fetch_taxonomy(target_level=level, value=value)
-        # If no match was ever found, then return taxonomy dict of Nones
-        return dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
+                best_guesses = PyGBIFParser.parse(name=value,target_level=level, taxo_dict=best_guesses)
+        return best_guesses
 
     @staticmethod
     def parse_title(text):
@@ -47,32 +47,6 @@ class Entry:
         lines = text.split('\n')
         title = lines[0].replace('\\','').replace('# ','')
         return title
-
-    @staticmethod
-    # TODO this should probably be moved out to a different class. 
-    # TODO Something is going wrong with some species (e.g. Apis Mellifera) - fix it. 
-    def fetch_taxonomy(target_level, value):
-        best_guesses = dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
-
-        # Rank messes with species-level lookups, so only use for higher-level searches
-        # TODO Use the limit parameter for pygbif to get more records instead of deafault 100
-        if target_level == 'Species':
-            data = species.name_lookup(q=value) 
-        else:
-            data = species.name_lookup(q=value, rank=target_level) 
-        results = data['results']
-        if len(results) > 0: # If data was returned by pygbif
-            avc = AttributeValueCounter(results)
-
-            # slice to exclude levels more specific than the target
-            relevant_levels = Entry.taxon_levels[:Entry.taxon_levels.index(target_level)+1]
-
-            for level in relevant_levels:
-                rankings = avc[level.lower()]
-                best_guesses[level] = max(rankings, key=rankings.get)
-                # TODO Add some aliases so that 'Metazoa' remaps to 'Animalia' and so on
-
-        return best_guesses
     
     def __str__(self):
         return f'Text: {self.get_displayable_text()}\nTaxonomy: {json.dumps(self.taxonomy,indent=4)}'
