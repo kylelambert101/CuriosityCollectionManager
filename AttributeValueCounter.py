@@ -6,7 +6,7 @@ Copied from the following link and modified:
 https://codereview.stackexchange.com/questions/174769/gathering-statistics-on-a-list-of-dicts
 '''
 class AttributeValueCounter:
-    def __init__(self, iterable, *, missing=None):
+    def __init__(self, iterable, *, missing="N/A"):
         self._missing = missing
         self.length = 0
         self._counts = {}

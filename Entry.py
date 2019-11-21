@@ -15,10 +15,10 @@ class Entry:
         'Species'
     ]
 
-    def __init__(self, text):
+    def __init__(self, text, debug=False):
         self.text = text
         self.title = Entry.parse_title(self.text)
-        self.taxonomy = Entry.parse_taxonomy(self.text)
+        self.taxonomy = Entry.parse_taxonomy(self.text, debug)
 
     def get_displayable_text(self):
         return re.sub(r'\n+','\n', # de-duplicate consecutive newlines
@@ -26,7 +26,7 @@ class Entry:
                         self.text))
 
     @staticmethod
-    def parse_taxonomy(text):
+    def parse_taxonomy(text, debug=False):
         best_guesses = dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
         # Try to find taxa in reverse hierarchical order
         for level in reversed(Entry.taxon_levels):
@@ -37,7 +37,7 @@ class Entry:
 
                 # Strip symbols from the match
                 value = re.sub(r'[^\w\s]','',value)
-                best_guesses = PyGBIFParser.parse(name=value,target_level=level, taxo_dict=best_guesses)
+                best_guesses = PyGBIFParser.parse(name=value,target_level=level, taxo_dict=best_guesses, debug=debug)
         return best_guesses
 
     @staticmethod
