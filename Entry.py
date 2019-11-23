@@ -1,4 +1,4 @@
-import re, json
+import re, json, logging, textwrap
 from pygbif import species
 from functools import total_ordering
 from PyGBIFParser import PyGBIFParser
@@ -15,10 +15,11 @@ class Entry:
         'Species'
     ]
 
-    def __init__(self, text, debug=False):
+    def __init__(self, text):
+        logging.debug('Creating new Entry from text:\n'+ textwrap.indent(text,"\t+\t", lambda line: True))
         self.text = text
         self.title = Entry.parse_title(self.text)
-        self.taxonomy = Entry.parse_taxonomy(self.text, debug)
+        self.taxonomy = Entry.parse_taxonomy(self.text)
 
     def get_displayable_text(self):
         return re.sub(r'\n+','\n', # de-duplicate consecutive newlines
@@ -26,7 +27,16 @@ class Entry:
                         self.text))
 
     @staticmethod
-    def parse_taxonomy(text, debug=False):
+    def parse_title(text):
+        #pull the first line of text out as the title
+        lines = text.split('\n')
+        title = lines[0].replace('\\','').replace('# ','')
+        logging.info(f'Parsed Entry Title: "{title}"')
+        return title
+    
+    @staticmethod
+    def parse_taxonomy(text):
+        logging.info('Parsing Entry Taxonomy...')
         best_guesses = dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
         # Try to find taxa in reverse hierarchical order
         for level in reversed(Entry.taxon_levels):
@@ -34,21 +44,16 @@ class Entry:
             match = re.search(pattern,text)
             if match is not None:
                 value = match.group(1)
+                logging.debug(f'Found taxonomy pattern match: "{match.group(0)}"')
 
                 # Strip symbols from the match
                 value = re.sub(r'[^\w\s]','',value)
-                best_guesses = PyGBIFParser.parse(name=value,target_level=level, taxo_dict=best_guesses, debug=debug)
+                logging.debug(f'Cleaned taxonomy pattern match: "{value}"')
+                best_guesses = PyGBIFParser.parse(name=value,target_level=level, taxo_dict=best_guesses)
         return best_guesses
 
-    @staticmethod
-    def parse_title(text):
-        #pull the first line of text out as the title
-        lines = text.split('\n')
-        title = lines[0].replace('\\','').replace('# ','')
-        return title
-    
     def __str__(self):
-        return f'Text: {self.get_displayable_text()}\nTaxonomy: {json.dumps(self.taxonomy,indent=4)}'
+        return f'Title: {self.title}\nTaxonomy: {json.dumps(self.taxonomy,indent=4)}'
 
     def _is_valid_operand(self, other):
         return (

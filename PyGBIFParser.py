@@ -1,23 +1,25 @@
+import logging
 from pygbif import species
 from AttributeValueCounter import AttributeValueCounter
 
 class PyGBIFParser:
 
     @staticmethod
-    def parse(name, target_level, taxo_dict, debug=False):
+    def parse(name, target_level, taxo_dict):
         # Assumption is that self.taxo_dict has relevant keys and Nones as values
         taxa = list(taxo_dict.keys())
 
         # Rank messes with species-level lookups, so only use for higher-level searches
         # TODO Use the limit parameter for pygbif to get more records instead of default 100
         if target_level == 'Species':
+            logging.info(f'Calling pygbif.species.namelookup with name "{name}"')
             data = species.name_lookup(q=name) 
         else:
+            logging.info(f'Calling pygbif.species.namelookup with name "{name}" and rank "{target_level}"')
             data = species.name_lookup(q=name, rank=target_level) 
 
         results = data['results']
-        if debug:
-            print(results)
+        logging.debug(f'PyGBIF returned {len(results)} results')
 
         missing_identifier = "N/A"
         if len(results) > 0: # If data was returned by pygbif
@@ -28,14 +30,13 @@ class PyGBIFParser:
             relevant_levels = taxa[:taxa.index(target_level)+1]
 
             for level in relevant_levels:
-                if debug:
-                    print(avc.visual_summary(level.lower()))
+                logging.debug(f"Attribute Value Counts for {level}: "+"\n"+avc.visual_summary(level.lower()))
                 rankings = avc[level.lower()]
 
-                rankings.pop(missing_identifier) # Remove any N/A's from the results
+                rankings.pop(missing_identifier) # Remove any N/A's from the rankings
                 
-                if debug:
-                    print(rankings)
+                top_result = max(rankings, key=rankings.get)
+                logging.debug(f'Top result for "{level}" is "{top_result}"\n')
                 taxo_dict[level] = max(rankings, key=rankings.get)
                 # TODO Add some aliases so that 'Metazoa' remaps to 'Animalia' and so on
 
