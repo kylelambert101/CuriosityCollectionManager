@@ -13,10 +13,10 @@ class PyGBIFParser:
         # TODO Use the limit parameter for pygbif to get more records instead of default 100
         if target_level == 'Species':
             logging.info(f'Calling pygbif.species.namelookup with name "{name}"')
-            data = species.name_lookup(q=name) 
+            data = species.name_lookup(q=name, limit=1000) 
         else:
             logging.info(f'Calling pygbif.species.namelookup with name "{name}" and rank "{target_level}"')
-            data = species.name_lookup(q=name, rank=target_level) 
+            data = species.name_lookup(q=name, rank=target_level, limit=1000) 
 
         results = data['results']
         logging.debug(f'PyGBIF returned {len(results)} results')
