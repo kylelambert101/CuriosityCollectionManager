@@ -10,7 +10,6 @@ class PyGBIFParser:
         taxa = list(taxo_dict.keys())
 
         # Rank messes with species-level lookups, so only use for higher-level searches
-        # TODO Use the limit parameter for pygbif to get more records instead of default 100
         if target_level == 'Species':
             logging.info(f'Calling pygbif.species.namelookup with name "{name}"')
             data = species.name_lookup(q=name, limit=1000) 
