@@ -83,10 +83,6 @@ class Entry:
 # Do both taxonomy dictionaries have the same Kingdom, Phylum, Class, etc?
 # This could be a useful automatic check when parsing.
 
-# TODO Throw in some debug options for printing out more info
-# Especially extra info about how the taxonomy was parsed out
-# Like the visual summary function in AttributeValueCount
-
 # TODO An optional time saver would be to skip taxonomy assignment in the 
 # constructor so that you get get a list of unassigned entries. Then in 
 # the calling program or container, you can get the unique matches 

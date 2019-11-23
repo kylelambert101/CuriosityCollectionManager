@@ -25,7 +25,6 @@ class PyGBIFParser:
             avc = AttributeValueCounter(results,missing=missing_identifier)
 
             # slice to exclude levels more specific than the target
-            #relevant_levels = Entry.taxon_levels[:Entry.taxon_levels.index(target_level)+1]
             relevant_levels = taxa[:taxa.index(target_level)+1]
 
             for level in relevant_levels:
