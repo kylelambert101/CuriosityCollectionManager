@@ -1,13 +1,21 @@
-import json, re, pprint, math, sys, logging, textwrap
+import json
+import re
+import pprint
+import math
+import sys
+import logging
+import textwrap
 from Entry import Entry
 from ProgressBar import ProgressBar
+import pickle
 
 # Logging Setup
-logging.basicConfig(    level=logging.DEBUG, 
-                        filename='app.log', 
-                        filemode='w', 
-                        format='%(asctime)s - (%(levelname)s) - %(message)s', 
-                        datefmt='%d-%b-%y %H:%M:%S' )
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='app.log',
+    filemode='w',
+    format='%(asctime)s - (%(levelname)s) - %(message)s',
+    datefmt='%d-%b-%y %H:%M:%S')
 
 # TODO Expand with argparse.ArgumentParser to be fancier
 if len(sys.argv) < 2:
@@ -18,14 +26,15 @@ if len(sys.argv) < 2:
 
 file_name = sys.argv[1]
 logging.info(f'Parsing {file_name} for entries')
-with open(file_name,'r') as f:
+with open(file_name, 'r') as f:
     data = json.loads(f.read())['entries']
 
 logging.info(f'Found {len(data)} entries')
 
 all_text = [d['text'] for d in data]
 all_entries = []
-
+# TODO Store a file of keys to gbif results in a dictionary
+# TODO Pickle and optionally reload the dictionary
 print(f'Processing {len(all_text)} entries')
 bar = ProgressBar(50)
 bar.start()
@@ -36,12 +45,10 @@ for text in all_text:
         all_entries.append(entry)
         logging.info(f'New Entry:\n{str(entry)}')
     except Exception as e:
-        logging.error("Exception occurred",exc_info=True)
-    current+=1
+        logging.error("Exception occurred", exc_info=True)
+    current += 1
     bar.update_progress(current, len(all_text))
 
-for e in sorted(all_entries):
-    print(e)
-
-# TODO Extract progress bar code to a different class
+# for e in sorted(all_entries):
+#     print(e)
 # TODO Add a cool thing where it shows what is being processed at the bottom of the screen under the progress bar
