@@ -24,7 +24,11 @@ class Entry:
                       textwrap.indent(text, "\t+\t", lambda line: True))
         self.text = text
         self.title = Entry.parse_title(self.text)
-        self.taxonomy = Entry.parse_taxonomy(self.text)
+        # taxonomy_labels will be a list of tuples: (level, searchable text)
+        self.taxonomy_labels = Entry.parse_taxonomy_labels(self.text)
+        # Initialize taxonomy as an empty dict
+        self.taxonomy = dict(
+            zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
 
     def get_displayable_text(self):
         return re.sub(r'\n+', '\n',  # de-duplicate consecutive newlines
@@ -40,10 +44,9 @@ class Entry:
         return title
 
     @staticmethod
-    def parse_taxonomy(text):
-        logging.info('Parsing Entry Taxonomy...')
-        best_guesses = dict(
-            zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels)))
+    def parse_taxonomy_labels(text):
+        labels = []
+        logging.info('Parsing Entry for Taxonomy Labels...')
         # Try to find taxa in reverse hierarchical order
         for level in reversed(Entry.taxon_levels):
             pattern = f'{level[0]}: ?(.+)'  # e.g. Family -> 'F: ?(.+)'
@@ -52,29 +55,12 @@ class Entry:
                 value = match.group(1)
                 logging.debug(
                     f'Found taxonomy pattern match: "{match.group(0)}"')
-
                 # Strip symbols from the match
                 value = re.sub(r'[^\w\s]', '', value)
                 logging.debug(f'Cleaned taxonomy pattern match: "{value}"')
-                best_guesses = PyGBIFParser.parse(
-                    name=value, target_level=level, taxo_dict=best_guesses)
-        '''
-        Alright, so I originally  thought I made a mistake by not returning best_guesses when
-        it was first assigned. I thought "won't it just get overwritten by higher levels?"
-        
-        Here's why I did it right in the first place:
-
-        PyGBIFParser.parse takes a taxo_dict as an argument and only overwrites the levels
-        greater than or equal to the level it gets as another arg. That meand when I have a
-        species call that assigns G and S, a second call for Family will only overwrite K-F 
-        and leave G and S alone. 
-
-        The idea is that I know the g/s so I should preserve them, but if I also know the 
-        family, I can give the parser some extra information to increase the chances it 
-        parses the higher levels correctly (e.g. 108 entries to consolidate for family 
-        Libellulidae instead of 11 for Plathemis lydia)
-        '''
-        return best_guesses
+                labels.append((level, value))
+        # labels will have (level,text) tuples in reverse order - lower levels first
+        return labels
 
     def __str__(self):
         return f'Title: {self.title}\nTaxonomy: {json.dumps(self.taxonomy,indent=4)}'
