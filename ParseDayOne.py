@@ -10,7 +10,7 @@ from ProgressBar import ProgressBar
 import pickle
 from os import path
 from PyGBIFParser import PyGBIFParser
-from Utilities import coalesce_taxo_results
+from Utilities import coalesce_taxo_results, cleanUpTaxoDict
 
 # General Settings
 LOG_FILE_NAME = 'app.log'
@@ -78,7 +78,9 @@ for text in all_text:
                 # no results in cache - use pygbif parser
                 logging.debug(f'Did not find a cached result. Calling API...')
                 result = PyGBIFParser.parse(
-                    name=text, target_level=level, taxo_dict=dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels))))
+                    name=text,
+                    target_level=level,
+                    taxo_dict=dict(zip(Entry.taxon_levels, [None]*len(Entry.taxon_levels))))
                 logging.debug(
                     f'Assembled result from API: {json.dumps(result,indent=4)}')
                 taxonomy_results[level] = result
@@ -92,10 +94,12 @@ for text in all_text:
                     GBIF_CACHE_FILE_NAME, 'wb'),)
 
         # assign the coalesced taxo results to the entry
-        coalesced = coalesce_taxo_results(taxonomy_results)
+        coalesced_dict = coalesce_taxo_results(taxonomy_results)
+        cleaned_dict = cleanUpTaxoDict(coalesced_dict)
+
         logging.debug(
-            f'Assigning coalesced taxonomy: {json.dumps(coalesced, indent=4)}')
-        entry.taxonomy = coalesced
+            f'Assigning coalesced and cleaned taxonomy: {json.dumps(cleaned_dict, indent=4)}')
+        entry.taxonomy = cleaned_dict
 
         # Add entry to list
         all_entries.append(entry)
