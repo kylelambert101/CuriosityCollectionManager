@@ -1,3 +1,6 @@
 __pycache__
 output.txt
 app.log
+all_entries.json
+gbif_results.dat
+.DS_Store

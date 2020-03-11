@@ -5,6 +5,7 @@ import textwrap
 from pygbif import species
 from functools import total_ordering
 from PyGBIFParser import PyGBIFParser
+from json import JSONEncoder
 
 
 @total_ordering
@@ -86,15 +87,21 @@ class Entry:
             if self.taxonomy[level] != other.taxonomy[level]:
                 return str(self.taxonomy[level]) < str(other.taxonomy[level])
 
+
+class EntryJSONEncoder(JSONEncoder):
+
+    def default(self, object):
+        if isinstance(object, Entry):
+            return object.__dict__
+        else:
+            # call base class implementation which takes care of
+            # raising exceptions for unsupported types
+            return json.JSONEncoder.default(self, object)
+
+
 # TODO It would be an interesting test to fetch taxonomy for all matches
 # instead of just the lowest level match, and then compare the resulting
 # taxonomy dictionaries to see if they match up.
 # E.g. F: Calopterygidae and S: Ebony Jewelwing
 # Do both taxonomy dictionaries have the same Kingdom, Phylum, Class, etc?
 # This could be a useful automatic check when parsing.
-
-# TODO An optional time saver would be to skip taxonomy assignment in the
-# constructor so that you get get a list of unassigned entries. Then in
-# the calling program or container, you can get the unique matches
-# (regex anchors) from the full collection of entries and just call the
-# api on those. It would eliminate a few duplicate calls at least.

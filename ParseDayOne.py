@@ -5,7 +5,7 @@ import math
 import sys
 import logging
 import textwrap
-from Entry import Entry
+from Entry import Entry, EntryJSONEncoder
 from ProgressBar import ProgressBar
 import pickle
 from os import path
@@ -107,10 +107,9 @@ for text in all_text:
 
 # Save json file of all entries
 with open(JSON_OUTPUT_FILE_NAME, 'w') as f:
-    # TODO Fix this - Entry is not JSON Serializable.
-    #f.write(json.dumps(all_entries, indent=4))
-    message = 'I wish I could save a json file... Bad programmer!'
-    logging.debug(message)
+    f.write(json.dumps(sorted(all_entries), indent=4, cls=EntryJSONEncoder))
+    message = f'Saved JSON data to {JSON_OUTPUT_FILE_NAME}'
+    logging.info(message)
     print(message)
 
 # for e in sorted(all_entries):
